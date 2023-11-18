@@ -1,13 +1,19 @@
 package org.example;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
-   public String name;
-   public int age;
+    private long id;
+    private String name;
+    private int age;
 
-   User() {}
-
-   User(String name, int age) {
-      this.name = name;
-      this.age = age;
-   }
+    public User(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
 }
