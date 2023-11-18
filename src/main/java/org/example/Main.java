@@ -14,10 +14,12 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 
 import java.util.Scanner;
 
 @Slf4j
+@ComponentScan
 @SpringBootConfiguration
 public class Main implements ApplicationRunner {
     @Autowired
@@ -37,24 +39,24 @@ public class Main implements ApplicationRunner {
                 .serviceUrl("pulsar://localhost:6650")
                 .build();
         log.info("Creating producer");
-        Producer<User> producer = client.newProducer(JSONSchema.of(User.class))
+        Producer<UserDto> producer = client.newProducer(JSONSchema.of(UserDto.class))
                 .topic(topic)
                 .create();
         log.info("Creating consumer");
-        Consumer<User> consumer = client.newConsumer(JSONSchema.of(User.class))
+        Consumer<UserDto> consumer = client.newConsumer(JSONSchema.of(UserDto.class))
                 .topic(topic)
                 .subscriptionInitialPosition(SubscriptionInitialPosition.Earliest)
                 .subscriptionName("schema-sub")
                 .subscribe();
-        var sc = new Scanner(System.in);
 
-        while (true) {
-            var userProducer = new User(sc.next(), sc.nextInt());
+        for (int i = 0; i < 100; i++) {
+            var userProducer = new UserDto("name" + i, i);
             log.info("Sending user");
             producer.send(userProducer);
-            Message<User> message = consumer.receive();
-            User userConsumer = message.getValue();
-            userRepository.createUser(userConsumer);
+            Message<UserDto> message = consumer.receive();
+            UserDto userConsumer = message.getValue();
+            User user = new User(userConsumer.getName(), userConsumer.getAge());
+            userRepository.createUser(user);
             log.info("Create user {}", userConsumer);
         }
     }
